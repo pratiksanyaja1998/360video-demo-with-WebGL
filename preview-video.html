@@ -12,14 +12,29 @@
          margin-top: 39%;
          margin-left: 43%;
         }
+        #bottomModel{
+         position: fixed;
+         bottom: 0;
+         left: 0;
+         right: 0;
+         height: 250;
+         display: none;
+         display: block;
+         z-index: 100;
+         background: #fff;
+         height: 250px;
+         padding: 10px;
+        }
      </style>
 </head>
 <body>
    <button id='btn' onclick="startPreview()">Let's start</button>
+   <div id="bottomModel"> You click box :). <button  onclick="document.getElementById('bottomModel').style.display = 'none'">close</button></div>
     <canvas id = "renderCanvas"></canvas>
+
       <script type = "text/javascript">
 
-
+     
       function startPreview(){
 
          document.getElementById('btn').style.display = 'none';
@@ -52,12 +67,52 @@
                   skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
                   skybox.material = skyboxMaterial;
 
+                   // On pick interpolations
+                  var prepareButton = function(mesh,color,light) {
+                     mesh.actionManager = new BABYLON.ActionManager(scene);//creo la colision en el cubo y agrego a escena
+                     
+                     //accion que va a pasar al tocar el cubo
+                     // mesh.actionManager.registerAction(
+                     //    new BABYLON.InterpolateValueAction(
+                     //          BABYLON.ActionManager.OnPickTrigger,
+                     //          light,
+                     //          'diffuse',
+                     //          color,
+                     //          1000
+                     //    )
+                     // );
+
+                     mesh.actionManager.registerAction(
+                        new BABYLON.ExecuteCodeAction(
+                           {
+                                 trigger: BABYLON.ActionManager.OnPickTrigger,
+                           },
+                            () => {
+                              document.getElementById('bottomModel').style.display = 'block';
+                           }
+                        )
+                     );
+                    
+                     
+                  };
+
+
                   scene.onPointerUp = function () {
                      console.log('onPointerUp ...');
                      videoTexture.video.play();
 
-                     var box = BABYLON.Mesh.CreateBox("box", 5.0, scene);
-                     box.position = new BABYLON.Vector3(-20, 0, 0); 
+                     var box = BABYLON.Mesh.CreateBox("box", 30.0, scene);
+                     box.position = new BABYLON.Vector3(0, 50, -400); 
+                     prepareButton(box,BABYLON.Color3.Random(),light);
+
+                     // box.actionManager.registerAction(
+                     //    new BABYLON.ExecuteCodeAction(
+                     //       {
+                     //             trigger: BABYLON.ActionManager.OnPickTrigger,
+                     //       },
+                     //       function () { console.log('r button was pressed'); }
+                     //    )
+                     // );
                   }			
 
                   // var origin = BABYLON.Mesh.CreateSphere("origin", 10, 1.0, scene);
@@ -72,6 +127,12 @@
                engine.runRenderLoop(function() {
                   scene.render();
                });
+
+                 // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+
       }
 
       // for development 
